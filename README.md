@@ -27,9 +27,9 @@ New declaration using local Git reference:
 ```flutter
 ffmpeg_kit_flutter:
   git:
-  url: https://github.com/842787863/ffmpeg-kit.git
-  path: flutter/flutter
-  ref: flutter_fix_retired_v6.0.3  # For version 6.0.3  
+    url: https://github.com/842787863/ffmpeg-kit.git
+    path: flutter/flutter
+    ref: flutter_fix_retired_v6.0.3  # For version 6.0.3  
   # ref: flutter_fix_retired_v5.1.0  # For version 5.1.0 
 ```
 ***
