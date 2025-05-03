@@ -153,16 +153,16 @@ public class FFmpegKitFlutterPlugin implements FlutterPlugin, ActivityAware, Met
         Log.d(LIBRARY_NAME, String.format("FFmpegKitFlutterPlugin created %s.", this));
     }
 
-    @SuppressWarnings("deprecation")
-    public static void registerWith(final io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
-        final Context context = (registrar.activity() != null) ? registrar.activity() : registrar.context();
-        if (context == null) {
-            Log.w(LIBRARY_NAME, "FFmpegKitFlutterPlugin can not be registered without a context.");
-            return;
-        }
-        FFmpegKitFlutterPlugin plugin = new FFmpegKitFlutterPlugin();
-        plugin.init(registrar.messenger(), context, registrar.activity(), registrar, null);
-    }
+//    @SuppressWarnings("deprecation")
+//    public static void registerWith(final io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
+//        final Context context = (registrar.activity() != null) ? registrar.activity() : registrar.context();
+//        if (context == null) {
+//            Log.w(LIBRARY_NAME, "FFmpegKitFlutterPlugin can not be registered without a context.");
+//            return;
+//        }
+//        FFmpegKitFlutterPlugin plugin = new FFmpegKitFlutterPlugin();
+//        plugin.init(registrar.messenger(), context, registrar.activity(), registrar, null);
+//    }
 
     protected void registerGlobalCallbacks() {
         FFmpegKitConfig.enableFFmpegSessionCompleteCallback(this::emitSession);
@@ -185,6 +185,13 @@ public class FFmpegKitFlutterPlugin implements FlutterPlugin, ActivityAware, Met
     @Override
     public void onAttachedToEngine(@NonNull final FlutterPluginBinding flutterPluginBinding) {
         this.flutterPluginBinding = flutterPluginBinding;
+        init(
+                flutterPluginBinding.getBinaryMessenger(),
+                flutterPluginBinding.getApplicationContext(),
+                null, // activity 可能尚未绑定
+                null, // 不需要 Registrar
+                null  // 不需要 ActivityPluginBinding（稍后会在 onAttachedToActivity 设置）
+        );
     }
 
     @Override
@@ -194,8 +201,10 @@ public class FFmpegKitFlutterPlugin implements FlutterPlugin, ActivityAware, Met
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding activityPluginBinding) {
-        Log.d(LIBRARY_NAME, String.format("FFmpegKitFlutterPlugin %s attached to activity %s.", this, activityPluginBinding.getActivity()));
-        init(flutterPluginBinding.getBinaryMessenger(), flutterPluginBinding.getApplicationContext(), activityPluginBinding.getActivity(), null, activityPluginBinding);
+        this.activityPluginBinding = activityPluginBinding;
+        this.activity = activityPluginBinding.getActivity();
+        activityPluginBinding.addActivityResultListener(this);
+        Log.d(LIBRARY_NAME, "FFmpegKitFlutterPlugin attached to activity.");
     }
 
     @Override
@@ -648,35 +657,30 @@ public class FFmpegKitFlutterPlugin implements FlutterPlugin, ActivityAware, Met
     }
 
     @SuppressWarnings("deprecation")
-    protected void init(final BinaryMessenger messenger, final Context context, final Activity activity, final io.flutter.plugin.common.PluginRegistry.Registrar registrar, final ActivityPluginBinding activityBinding) {
+    protected void init(
+            final BinaryMessenger messenger,
+            final Context context,
+            final Activity activity,
+            final ActivityPluginBinding activityBinding
+    ) {
         registerGlobalCallbacks();
 
         if (methodChannel == null) {
             methodChannel = new MethodChannel(messenger, METHOD_CHANNEL);
             methodChannel.setMethodCallHandler(this);
-        } else {
-            Log.i(LIBRARY_NAME, "FFmpegKitFlutterPlugin method channel was already initialised.");
         }
 
         if (eventChannel == null) {
             eventChannel = new EventChannel(messenger, EVENT_CHANNEL);
             eventChannel.setStreamHandler(this);
-        } else {
-            Log.i(LIBRARY_NAME, "FFmpegKitFlutterPlugin event channel was already initialised.");
         }
 
         this.context = context;
         this.activity = activity;
 
-        if (registrar != null) {
-            // V1 embedding setup for activity listeners.
-            registrar.addActivityResultListener(this);
-        } else {
-            // V2 embedding setup for activity listeners.
+        if (activityBinding != null) {
             activityBinding.addActivityResultListener(this);
         }
-
-        Log.d(LIBRARY_NAME, String.format("FFmpegKitFlutterPlugin %s initialised with context %s and activity %s.", this, context, activity));
     }
 
     protected void uninit() {
