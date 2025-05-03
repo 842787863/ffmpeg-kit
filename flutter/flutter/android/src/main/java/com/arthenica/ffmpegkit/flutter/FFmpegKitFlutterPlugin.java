@@ -189,8 +189,7 @@ public class FFmpegKitFlutterPlugin implements FlutterPlugin, ActivityAware, Met
                 flutterPluginBinding.getBinaryMessenger(),
                 flutterPluginBinding.getApplicationContext(),
                 null, // activity 可能尚未绑定
-                null, // 不需要 Registrar
-                null  // 不需要 ActivityPluginBinding（稍后会在 onAttachedToActivity 设置）
+                null// 不需要 Registra// 不需要 ActivityPluginBinding（稍后会在 onAttachedToActivity 设置）
         );
     }
 
