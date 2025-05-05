@@ -1,4 +1,4 @@
-name: macos build scripts
+name: macos build scripts 
 
 on:
   push:
